@@ -52,6 +52,6 @@ internal sealed class PagingArgumentsParameterExpressionBuilder()
             includeTotalCount)
         { NullOrdering = nullOrdering };
 
-    private static bool IncludeTotalCount(ISelection selection)
+    private static bool IncludeTotalCount(Selection selection)
         => selection.Field.Features.Get<PagingOptions>()?.IncludeTotalCount is true;
 }

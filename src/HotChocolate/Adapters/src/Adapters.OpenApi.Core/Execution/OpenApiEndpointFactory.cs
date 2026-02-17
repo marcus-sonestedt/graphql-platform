@@ -1,12 +1,21 @@
+#if !NET9_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Validation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Routing.Patterns;
+using Microsoft.Extensions.DependencyInjection;
 using RequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.Adapters.OpenApi;
 
+#if !NET9_0_OR_GREATER
+[RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+[RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+#endif
 internal static class OpenApiEndpointFactory
 {
     public static Endpoint Create(
@@ -63,7 +72,11 @@ internal static class OpenApiEndpointFactory
                 continue;
             }
 
-            var model = modelsByName[referencedFragmentName];
+            if (!modelsByName.TryGetValue(referencedFragmentName, out var model))
+            {
+                continue;
+            }
+
             foreach (var definition in model.Document.Definitions.OfType<IExecutableDefinitionNode>())
             {
                 definitions.Add(definition);
@@ -90,8 +103,14 @@ internal static class OpenApiEndpointFactory
         InsertParametersIntoTrie(endpointDefinition.RouteParameters, OpenApiEndpointParameterType.Route);
         InsertParametersIntoTrie(endpointDefinition.QueryParameters, OpenApiEndpointParameterType.Query);
 
+        var documentValidator = schema.Services.GetRequiredService<DocumentValidator>();
+
+        var validationResult = documentValidator.Validate(schema, document);
+        var hasValidDocument = !validationResult.HasErrors;
+
         return new OpenApiEndpointDescriptor(
             document,
+            hasValidDocument,
             endpointDefinition.HttpMethod,
             route,
             parameterTrie,
