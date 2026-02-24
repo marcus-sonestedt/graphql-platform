@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json;
 using CookieCrumble.Formatters;
 using DiffPlex.DiffBuilder;
 using static System.Collections.Immutable.ImmutableStack;
@@ -176,6 +177,17 @@ public class Snapshot
                 name,
                 value,
                 new PlainTextSnapshotValueFormatter(markdownLanguage)));
+
+        return this;
+    }
+
+    public Snapshot Add(JsonElement? value, string name)
+    {
+        _segments.Add(
+            new SnapshotSegment(
+                name,
+                value,
+                new JsonElementSnapshotValueFormatter()));
 
         return this;
     }

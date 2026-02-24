@@ -685,10 +685,7 @@ public abstract class IntegrationTestBase
             options: new RequestOptions { JsonSerializerOptions = JsonSerializerOptions.Default });
 
         // assert
-        result.StructuredContent!
-            .ToString()
-            .ReplaceLineEndings("\n")
-            .MatchSnapshot(extension: ".json");
+        result.StructuredContent.MatchSnapshot(extension: ".json");
     }
 
     [Fact]
@@ -742,10 +739,7 @@ public abstract class IntegrationTestBase
             options: new RequestOptions { JsonSerializerOptions = JsonSerializerOptions.Default });
 
         // assert
-        result.StructuredContent!
-            .ToString()
-            .ReplaceLineEndings("\n")
-            .MatchSnapshot(extension: ".json");
+        result.StructuredContent.MatchSnapshot(extension: ".json");
     }
 
     [Fact]
@@ -764,10 +758,7 @@ public abstract class IntegrationTestBase
         var result = await mcpClient.CallToolAsync("get_with_defaulted_variables");
 
         // assert
-        result.StructuredContent!
-            .ToString()
-            .ReplaceLineEndings("\n")
-            .MatchSnapshot(extension: ".json");
+        result.StructuredContent.MatchSnapshot(extension: ".json");
     }
 
     [Fact]
@@ -813,10 +804,7 @@ public abstract class IntegrationTestBase
             options: new RequestOptions { JsonSerializerOptions = JsonSerializerOptions.Default });
 
         // assert
-        result.StructuredContent!
-            .ToString()
-            .ReplaceLineEndings("\n")
-            .MatchSnapshot(extension: ".json");
+        result.StructuredContent.MatchSnapshot(extension: ".json");
     }
 
     [Fact]
@@ -834,11 +822,7 @@ public abstract class IntegrationTestBase
         var result = await mcpClient.CallToolAsync("get_with_errors");
 
         // assert
-        result.StructuredContent!
-            .RemoveLocations()
-            .ToString()
-            .ReplaceLineEndings("\n")
-            .MatchSnapshot(extension: ".json");
+        result.StructuredContent.MatchSnapshot(extension: ".json");
     }
 
     [Fact]
@@ -858,8 +842,8 @@ public abstract class IntegrationTestBase
 
         // assert
         var snapshot = new Snapshot();
-        snapshot.Add(result1.StructuredContent, "Result 1", markdownLanguage: "json");
-        snapshot.Add(result2.StructuredContent, "Result 2", markdownLanguage: "json");
+        snapshot.Add(result1.StructuredContent, "Result 1");
+        snapshot.Add(result2.StructuredContent, "Result 2");
         await snapshot.MatchMarkdownAsync();
     }
 
@@ -878,11 +862,7 @@ public abstract class IntegrationTestBase
         var result = await mcpClient.CallToolAsync("get_with_auth");
 
         // assert
-        result.StructuredContent!
-            .RemoveLocations()
-            .ToString()
-            .ReplaceLineEndings("\n")
-            .MatchSnapshot(extension: ".json");
+        result.StructuredContent.MatchSnapshot(extension: ".json");
     }
 
     [Fact]
@@ -1064,24 +1044,5 @@ public sealed class TestMcpDiagnosticEventListener : McpDiagnosticEventListener
     public override void ValidationErrors(IReadOnlyList<IError> errors)
     {
         ValidationErrorLog.AddRange(errors);
-    }
-}
-
-file static class JsonNodeExtensions
-{
-    public static JsonNode RemoveLocations(this JsonNode node)
-    {
-        if (node["errors"] is JsonArray errors)
-        {
-            foreach (var error in errors)
-            {
-                if (error is JsonObject errorObject)
-                {
-                    errorObject.Remove("locations");
-                }
-            }
-        }
-
-        return node;
     }
 }
